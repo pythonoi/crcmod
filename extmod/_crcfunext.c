@@ -27,11 +27,26 @@
 
 #include <Python.h>
 
+// Note: the type declarations are set up to work on 32-bit platforms using the
+// GNU C compiler.  They will need to be adjusted for other platforms.  In
+// particular, the Microsoft Windows compiler uses _int64 instead of long long.
+
 // Define a few types to make it easier to port to other platforms.
 typedef unsigned char UINT8;
 typedef unsigned short UINT16;
-typedef unsigned int UINT32;  // Works for 32-bit and some 64-bit processors
-typedef unsigned PY_LONG_LONG UINT64;
+typedef unsigned int UINT32;
+typedef unsigned long long UINT64;
+
+// Define some macros for the data format strings.  The INPUT strings are for
+// decoding the input parameters to the function which are (data, crc, table).
+
+// Note: these format strings use codes that are new in Python 2.3 so it would
+// be necessary to rewrite the code for versions earlier than 2.3.
+
+#define INPUT8 "s#Bs#"
+#define INPUT16 "s#Hs#"
+#define INPUT32 "s#Is#"
+#define INPUT64 "s#Ks#"
 
 // Define some macros that extract the specified byte from an integral value in
 // what should be a platform indepent manner.
@@ -53,14 +68,13 @@ typedef unsigned PY_LONG_LONG UINT64;
 static PyObject*
 _crc8(PyObject* self, PyObject* args)
 {
-    int crcin;
     UINT8 crc;
     UINT8* data;
     int dataLen;
     UINT8* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crcin,
+    if (!PyArg_ParseTuple(args, INPUT8, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
@@ -70,16 +84,12 @@ _crc8(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    // Expecting a 8-bit unsigned value
-    crc = (UINT8)crcin;
-
     while (dataLen--) {
         crc = table[*data ^ crc];
         data++;
     }
 
-    // This makes sure an unsigned value is returned.
-    return Py_BuildValue("i", (int)crc);
+    return PyInt_FromLong((long)crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -96,14 +106,13 @@ _crc8(PyObject* self, PyObject* args)
 static PyObject*
 _crc8r(PyObject* self, PyObject* args)
 {
-    int crcin;
     UINT8 crc;
     UINT8* data;
     int dataLen;
     UINT8* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crcin,
+    if (!PyArg_ParseTuple(args, INPUT8, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
@@ -113,16 +122,12 @@ _crc8r(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    // Expecting a 8-bit unsigned value
-    crc = (UINT8)crcin;
-
     while (dataLen--) {
         crc = table[*data ^ crc];
         data++;
     }
 
-    // This makes sure an unsigned value is returned.
-    return Py_BuildValue("i", (int)crc);
+    return PyInt_FromLong((long)crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -138,14 +143,13 @@ _crc8r(PyObject* self, PyObject* args)
 static PyObject*
 _crc16(PyObject* self, PyObject* args)
 {
-    int crcin;
     UINT16 crc;
     UINT8* data;
     int dataLen;
     UINT16* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crcin,
+    if (!PyArg_ParseTuple(args, INPUT16, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
@@ -155,16 +159,12 @@ _crc16(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    // Expecting a 16-bit unsigned value
-    crc = (UINT16)crcin;
-
     while (dataLen--) {
         crc = table[*data ^ BYTE1(crc)] ^ (crc << 8);
         data++;
     }
 
-    // This makes sure an unsigned value is returned.
-    return Py_BuildValue("i", (int)crc);
+    return PyInt_FromLong((long)crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -181,14 +181,13 @@ _crc16(PyObject* self, PyObject* args)
 static PyObject*
 _crc16r(PyObject* self, PyObject* args)
 {
-    int crcin;
     UINT16 crc;
     UINT8* data;
     int dataLen;
     UINT16* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crcin,
+    if (!PyArg_ParseTuple(args, INPUT16, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
@@ -198,16 +197,12 @@ _crc16r(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    // Expecting a 16-bit unsigned value
-    crc = (UINT16)crcin;
-
     while (dataLen--) {
         crc = table[*data ^ BYTE0(crc)] ^ (crc >> 8);
         data++;
     }
 
-    // This makes sure an unsigned value is returned.
-    return Py_BuildValue("i", (int)crc);
+    return PyInt_FromLong((long)crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -229,7 +224,7 @@ _crc32(PyObject* self, PyObject* args)
     UINT32* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crc,
+    if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
@@ -244,7 +239,7 @@ _crc32(PyObject* self, PyObject* args)
         data++;
     }
 
-    return Py_BuildValue("i", crc);
+    return PyLong_FromUnsignedLong(crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -267,7 +262,7 @@ _crc32r(PyObject* self, PyObject* args)
     UINT32* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crc,
+    if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
@@ -282,7 +277,7 @@ _crc32r(PyObject* self, PyObject* args)
         data++;
     }
 
-    return Py_BuildValue("i", crc);
+    return PyLong_FromUnsignedLong(crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -304,22 +299,22 @@ _crc64(PyObject* self, PyObject* args)
     UINT64* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crc,
+    if (!PyArg_ParseTuple(args, INPUT64, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
 
-    if (tableLen != 256*4) {
+    if (tableLen != 256*8) {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
     while (dataLen--) {
-        crc = table[*data ^ BYTE3(crc)] ^ (crc << 8);
+        crc = table[*data ^ BYTE7(crc)] ^ (crc << 8);
         data++;
     }
 
-    return Py_BuildValue("i", crc);
+    return PyLong_FromUnsignedLongLong(crc);
 }
 
 //-----------------------------------------------------------------------------
@@ -342,12 +337,12 @@ _crc64r(PyObject* self, PyObject* args)
     UINT64* table;
     int tableLen;
 
-    if (!PyArg_ParseTuple(args, "s#is#", &data, &dataLen, &crc,
+    if (!PyArg_ParseTuple(args, INPUT64, &data, &dataLen, &crc,
                             &table, &tableLen)) {
         return NULL;
     }
 
-    if (tableLen != 256*4) {
+    if (tableLen != 256*8) {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
@@ -357,7 +352,7 @@ _crc64r(PyObject* self, PyObject* args)
         data++;
     }
 
-    return Py_BuildValue("i", crc);
+    return PyLong_FromUnsignedLongLong(crc);
 }
 
 //-----------------------------------------------------------------------------

@@ -103,10 +103,15 @@ class Crc:
             crcType = 'UINT%d' % (8*self.digest_size)
 
         if self.digest_size == 1:
+            # Both 8-bit CRC algorithms are the same
             crcAlgor = 'table[*data ^ (%s)crc]'
         elif self.reverse:
+            # The bit reverse algorithms are all the same except for the data
+            # type of the crc variable which is specified elsewhere.
             crcAlgor = 'table[*data ^ (%s)crc] ^ (crc >> 8)'
         else:
+            # The forward CRC algorithms larger than 8 bits have an extra shift
+            # operation to get the high byte.
             shift = 8*(self.digest_size - 1)
             crcAlgor = 'table[*data ^ (%%s)(crc >> %d)] ^ (crc << 8)' % shift
 
@@ -114,8 +119,10 @@ class Crc:
         if self.digest_size <= 4:
             fmt = fmt + 'U,'
         else:
+            # Need the long long type identifier to keep gcc from complaining.
             fmt = fmt + 'ULL,'
 
+        # Select the number of entries per row in the output code.
         n = {1:8, 2:8, 4:4, 8:2}[self.digest_size]
 
         lst = []
