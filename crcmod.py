@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #-----------------------------------------------------------------------------
-__all__ = '''mkCrcFun
+__all__ = '''mkCrcFun Crc
 '''.split()
 
 # Select the appropriate set of low-level CRC functions for this installation.
