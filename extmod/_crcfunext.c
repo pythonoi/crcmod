@@ -49,7 +49,7 @@ typedef unsigned long long UINT64;
 #define INPUT64 "s#Ks#"
 
 // Define some macros that extract the specified byte from an integral value in
-// what should be a platform indepent manner.
+// what should be a platform independent manner.
 #define BYTE0(x) ((UINT8)(x))
 #define BYTE1(x) ((UINT8)((x) >> 8))
 #define BYTE3(x) ((UINT8)((x) >> 24))
