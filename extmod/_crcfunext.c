@@ -75,16 +75,19 @@ _crc8(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT8, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256) {
+    if (tableLen != 256)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ crc];
         data++;
     }
@@ -113,16 +116,19 @@ _crc8r(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT8, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256) {
+    if (tableLen != 256)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ crc];
         data++;
     }
@@ -150,16 +156,19 @@ _crc16(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT16, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256*2) {
+    if (tableLen != 256*2)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ BYTE1(crc)] ^ (crc << 8);
         data++;
     }
@@ -188,16 +197,19 @@ _crc16r(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT16, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256*2) {
+    if (tableLen != 256*2)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ BYTE0(crc)] ^ (crc >> 8);
         data++;
     }
@@ -225,16 +237,19 @@ _crc32(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256*4) {
+    if (tableLen != 256*4)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ BYTE3(crc)] ^ (crc << 8);
         data++;
     }
@@ -263,16 +278,19 @@ _crc32r(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256*4) {
+    if (tableLen != 256*4)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ BYTE0(crc)] ^ (crc >> 8);
         data++;
     }
@@ -300,16 +318,19 @@ _crc64(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT64, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256*8) {
+    if (tableLen != 256*8)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ BYTE7(crc)] ^ (crc << 8);
         data++;
     }
@@ -338,16 +359,19 @@ _crc64r(PyObject* self, PyObject* args)
     int tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT64, &data, &dataLen, &crc,
-                            &table, &tableLen)) {
+                            &table, &tableLen))
+    {
         return NULL;
     }
 
-    if (tableLen != 256*8) {
+    if (tableLen != 256*8)
+    {
         PyErr_SetString(PyExc_ValueError, "invalid CRC table");
         return NULL;
     }
 
-    while (dataLen--) {
+    while (dataLen--)
+    {
         crc = table[*data ^ BYTE0(crc)] ^ (crc >> 8);
         data++;
     }
@@ -373,6 +397,11 @@ void init_crcfunext(void)
 {
   PyObject *m;
 
+  if ((sizeof(UINT8) != 1) || (sizeof(UINT16) != 2) || 
+      (sizeof(UINT32) != 4) || (sizeof(UINT64) != 8))
+  {
+      Py_FatalError("crcfunext: One of the data types is invalid");
+  }
   m = Py_InitModule("_crcfunext", methodTable);
 }
 
