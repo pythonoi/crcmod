@@ -41,6 +41,8 @@ import sys, struct
 class Crc:
     def __init__(self, poly, initCrc=~0L, rev=True, initialize=True):
         if not initialize:
+            # Don't want to perform the initialization when using new or copy
+            # to create a new instance.
             return
 
         x = _mkCrcFun(poly, initCrc, rev)
@@ -51,6 +53,15 @@ class Crc:
         self.crcValue = self.initCrc
         self.reverse = rev
         self.poly = poly
+
+    def __str__(self):
+        lst = []
+        lst.append('poly = 0x%X' % self.poly)
+        lst.append('reverse = %s' % self.reverse)
+        fmt = '0x%%0%dX' % (self.digest_size*2)
+        lst.append('initCrc  = %s' % (fmt % self.initCrc))
+        lst.append('crcValue = %s' % (fmt % self.crcValue))
+        return '\n'.join(lst)
 
     def new(self, arg=None):
         n = Crc(poly=None, initialize=False)
