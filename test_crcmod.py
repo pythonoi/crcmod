@@ -87,124 +87,150 @@ def crc32(d, crc=0):
 
 # The following function produces the same result as crc32.
 def try32(d, crc=0, fun=mkCrcFun(g32,0,1)):
-  return fun(d, crc ^ 0xFFFFFFFFL) ^ 0xFFFFFFFFL
+    return fun(d, crc ^ 0xFFFFFFFFL) ^ 0xFFFFFFFFL
 
 test(crc32, 0xBE047A60L, 0x084BFF58L)
 test(try32, 0xBE047A60L, 0x084BFF58L)
+
+#-----------------------------------------------------------------------------
+# I was able to locate a couple of 64-bit polynomials on the web.  To make it
+# easier to input the representation, define a function that builds a
+# polynomial from a list of the bits that need to be turned on.
+
+def polyFromBits(bits):
+    p = 0L
+    for n in bits:
+        p = p | (1L << n)
+    return p
+
+# The following is from the paper "An Improved 64-bit Cyclic Redundancy Check
+# for Protein Sequences" by David T. Jones
+
+g64a = polyFromBits([64, 63, 61, 59, 58, 56, 55, 52, 49, 48, 47, 46, 44, 41,
+            37, 36, 34, 32, 31, 28, 26, 23, 22, 19, 16, 13, 12, 10, 9, 6, 4,
+            3, 0])
+
+# The following is from Standard ECMA-182 "Data Interchange on 12,7 mm 48-Track
+# Magnetic Tape Cartridges -DLT1 Format-", December 1992.
+
+g64b = polyFromBits([64, 62, 57, 55, 54, 53, 52, 47, 46, 45, 40, 39, 38, 37,
+            35, 33, 32, 31, 29, 27, 24, 23, 22, 21, 19, 17, 13, 12, 10, 9, 7,
+            4, 1, 0])
 
 #-----------------------------------------------------------------------------
 # This class is used to check the CRC calculations against a direct
 # implementation using polynomial division.
 
 class poly:
-  '''Class implementing polynomials over the field of integers mod 2'''
-  def __init__(self,p):
-    p = long(p)
-    if p < 0: raise 'invalid polynomial'
-    self.p = p
+    '''Class implementing polynomials over the field of integers mod 2'''
+    def __init__(self,p):
+        p = long(p)
+        if p < 0: raise 'invalid polynomial'
+        self.p = p
 
-  def __long__(self):
-    return self.p
+    def __long__(self):
+        return self.p
 
-  def __eq__(self,other):
-    return self.p == other.p
+    def __eq__(self,other):
+        return self.p == other.p
 
-  def __ne__(self,other):
-    return self.p != other.p
+    def __ne__(self,other):
+        return self.p != other.p
 
-  # To allow sorting of polynomials, use their long integer form for comparison
-  def __cmp__(self,other):
-    return cmp(self.p, other.p)
+    # To allow sorting of polynomials, use their long integer form for
+    # comparison
+    def __cmp__(self,other):
+        return cmp(self.p, other.p)
 
-  def __nonzero__(self):
-    return self.p != 0L
+    def __nonzero__(self):
+        return self.p != 0L
 
-  def __neg__(self):
-    return self # These polynomials are their own inverse under addition
+    def __neg__(self):
+        return self # These polynomials are their own inverse under addition
 
-  def __invert__(self):
-    n = max(self.deg() + 1, 1)
-    x = (1L << n) - 1
-    return poly(self.p ^ x)
+    def __invert__(self):
+        n = max(self.deg() + 1, 1)
+        x = (1L << n) - 1
+        return poly(self.p ^ x)
 
-  def __add__(self,other):
-    return poly(self.p ^ other.p)
+    def __add__(self,other):
+        return poly(self.p ^ other.p)
 
-  def __sub__(self,other):
-    return poly(self.p ^ other.p)
+    def __sub__(self,other):
+        return poly(self.p ^ other.p)
 
-  def __mul__(self,other):
-    a = self.p
-    b = other.p
-    if a == 0 or b == 0: return poly(0)
-    x = 0L
-    while b:
-      if b&1:
-        x = x ^ a
-      a = a<<1
-      b = b>>1
-    return poly(x)
+    def __mul__(self,other):
+        a = self.p
+        b = other.p
+        if a == 0 or b == 0: return poly(0)
+        x = 0L
+        while b:
+            if b&1:
+                x = x ^ a
+            a = a<<1
+            b = b>>1
+        return poly(x)
 
-  def __divmod__(self,other):
-    u = self.p
-    m = self.deg()
-    v = other.p
-    n = other.deg()
-    if v == 0: raise ZeroDivisionError, 'polynomial division by zero'
-    if n == 0: return (self,poly(0))
-    if m < n: return (poly(0),self)
-    k = m-n
-    a = 1L << m
-    v = v << k
-    q = 0L
-    while k > 0:
-      if a & u:
-        u = u ^ v
-        q = q | 1L
-      q = q << 1
-      a = a >> 1
-      v = v >> 1
-      k -= 1
-    if a & u:
-      u = u ^ v
-      q = q | 1L
-    return (poly(q),poly(u))
+    def __divmod__(self,other):
+        u = self.p
+        m = self.deg()
+        v = other.p
+        n = other.deg()
+        if v == 0: raise ZeroDivisionError, 'polynomial division by zero'
+        if n == 0: return (self,poly(0))
+        if m < n: return (poly(0),self)
+        k = m-n
+        a = 1L << m
+        v = v << k
+        q = 0L
+        while k > 0:
+            if a & u:
+                u = u ^ v
+                q = q | 1L
+            q = q << 1
+            a = a >> 1
+            v = v >> 1
+            k -= 1
+        if a & u:
+            u = u ^ v
+            q = q | 1L
+        return (poly(q),poly(u))
 
-  def __div__(self,other):
-    return self.__divmod__(other)[0]
+    def __div__(self,other):
+        return self.__divmod__(other)[0]
 
-  def __mod__(self,other):
-    return self.__divmod__(other)[1]
+    def __mod__(self,other):
+        return self.__divmod__(other)[1]
 
-  def __repr__(self):
-    return 'poly(0x%XL)' % self.p
+    def __repr__(self):
+        return 'poly(0x%XL)' % self.p
 
-  def __str__(self):
-    p = self.p
-    if p == 0: return '0'
-    lst = { 0:[], 1:['1'], 2:['x'], 3:['1','x'] }[p&3]
-    p = p>>2
-    n = 2
-    while p:
-      if p&1: lst.append('x^%d' % n)
-      p = p>>1
-      n += 1
-    lst.reverse()
-    return '+'.join(lst)
+    def __str__(self):
+        p = self.p
+        if p == 0: return '0'
+        lst = { 0:[], 1:['1'], 2:['x'], 3:['1','x'] }[p&3]
+        p = p>>2
+        n = 2
+        while p:
+            if p&1: lst.append('x^%d' % n)
+            p = p>>1
+            n += 1
+        lst.reverse()
+        return '+'.join(lst)
 
-  def deg(self):
-    '''return the degree of the polynomial'''
-    a = self.p
-    if a == 0: return -1
-    n = 0
-    while a >= 0x10000L:
-      n += 16
-      a = a >> 16
-    a = int(a)
-    while a > 1:
-      n += 1
-      a = a >> 1
-    return n
+    def deg(self):
+        '''return the degree of the polynomial'''
+        a = self.p
+        if a == 0: return -1
+        n = 0
+        while a >= 0x10000L:
+            n += 16
+            a = a >> 16
+        a = int(a)
+        while a > 1:
+            n += 1
+            a = a >> 1
+        return n
 
 #-----------------------------------------------------------------------------
 # The following functions compute the CRC using direct polynomial division.
@@ -212,34 +238,53 @@ class poly:
 # algorithms.
 
 g8p = poly(g8)
-x8p = poly(0x100)
+x8p = poly(1L<<8)
 def crc8p(d):
-  d = map(ord, d)
-  p = 0L
-  for i in d:
-    p = p*256L + i
-  p = poly(p)
-  return long(p*x8p%g8p)
+    d = map(ord, d)
+    p = 0L
+    for i in d:
+        p = p*256L + i
+    p = poly(p)
+    return long(p*x8p%g8p)
 
 g16p = poly(g16)
-x16p = poly(0x10000)
+x16p = poly(1L<<16)
 def crc16p(d):
-  d = map(ord, d)
-  p = 0L
-  for i in d:
-    p = p*256L + i
-  p = poly(p)
-  return long(p*x16p%g16p)
+    d = map(ord, d)
+    p = 0L
+    for i in d:
+        p = p*256L + i
+    p = poly(p)
+    return long(p*x16p%g16p)
 
 g32p = poly(g32)
-x32p = poly(0x100000000)
+x32p = poly(1L<<32)
 def crc32p(d):
-  d = map(ord, d)
-  p = 0L
-  for i in d:
-    p = p*256L + i
-  p = poly(p)
-  return long(p*x32p%g32p)
+    d = map(ord, d)
+    p = 0L
+    for i in d:
+        p = p*256L + i
+    p = poly(p)
+    return long(p*x32p%g32p)
+
+g64ap = poly(g64a)
+x64p = poly(1L<<64)
+def crc64ap(d):
+    d = map(ord, d)
+    p = 0L
+    for i in d:
+        p = p*256L + i
+    p = poly(p)
+    return long(p*x64p%g64ap)
+
+g64bp = poly(g64b)
+def crc64bp(d):
+    d = map(ord, d)
+    p = 0L
+    for i in d:
+        p = p*256L + i
+    p = poly(p)
+    return long(p*x64p%g64bp)
 
 # Check the CRC calculations against the same calculation done directly with
 # polynomial division.
@@ -247,6 +292,8 @@ def crc32p(d):
 test(mkCrcFun(g8,0,0),  crc8p('T'),  crc8p(msg))
 test(mkCrcFun(g16,0,0), crc16p('T'), crc16p(msg))
 test(mkCrcFun(g32,0,0), crc32p('T'), crc32p(msg))
+test(mkCrcFun(g64a,0,0), crc64ap('T'), crc64ap(msg))
+test(mkCrcFun(g64b,0,0), crc64bp('T'), crc64bp(msg))
 
 print 'All tests PASS'
 
