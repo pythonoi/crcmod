@@ -1,4 +1,3 @@
-import os
 from distutils.core import Extension, setup
 
 setup(name = 'crcfunext',

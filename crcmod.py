@@ -1,7 +1,4 @@
 #-----------------------------------------------------------------------------
-# crcmod is a Python module for gererating objects that compute the Cyclic
-# Redundancy Check.  Any 8, 16, 32, or 64 bit polynomial can be used.  
-#
 # Copyright (c) 2004  Raymond L. Buvel
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,6 +19,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #-----------------------------------------------------------------------------
+'''crcmod is a Python module for gererating objects that compute the Cyclic
+Redundancy Check.  Any 8, 16, 32, or 64 bit polynomial can be used.  
+
+The following are the public components of this module.
+
+Crc -- a class that creates instances providing the same interface as the md5
+and sha modules in the Python standard library.  These instances also provide
+a method for generating a C/C++ function to compute the CRC.
+
+mkCrcFun -- create a Python function to compute the CRC using the specified
+polynomial and initial value.  This provides a much simpler interface if all
+you need is a function for CRC calculation.
+'''
+
 __all__ = '''mkCrcFun Crc
 '''.split()
 
@@ -39,6 +50,34 @@ import sys, struct
 
 #-----------------------------------------------------------------------------
 class Crc:
+    '''Compute a Cyclic Redundancy Check (CRC) using the specified polynomial.
+
+    Instances of this class have the same interface as the md5 and sha modules
+    in the Python standard library.  See the documentation for these modules
+    for examples of how to use a Crc instance.
+
+    The string representation of a Crc instance identifies the polynomial and
+    the initial and current CRC values.  The print statement can be used to
+    output this information.
+
+    If you need to generate a C/C++ function for use in another application,
+    use the generateCode method.  If you need to generate code for another
+    language, subclass Crc and override the generateCode method.
+
+    The following are the parameters supplied to the constructor.
+
+    poly -- The generator polynomial to use in calculating the CRC.  The value
+    is specified as a Python integer or long integer.  The bits in this integer
+    are the coefficients of the polynomial.  The only polynomials allowed are
+    those that generate 8, 16, 32, or 64 bit CRCs.
+
+    initCrc -- Initial value used to start the CRC calculation.  Defaults to
+    all bits set because that starting value will take leading zero bytes into
+    account.  Starting with zero will ignore all leading zero bytes.
+
+    rev -- A flag that selects a bit reversed algorithm when True.  Defaults to
+    True because the bit reversed algorithms are more efficient.
+    '''
     def __init__(self, poly, initCrc=~0L, rev=True, initialize=True):
         if not initialize:
             # Don't want to perform the initialization when using new or copy
@@ -64,6 +103,11 @@ class Crc:
         return '\n'.join(lst)
 
     def new(self, arg=None):
+        '''Create a new instance of the Crc class initialized to the same
+        values as the original instance.  The current CRC is set to the initial
+        value.  If a string is provided in the optional arg parameter, it is
+        passed to the update method.
+        '''
         n = Crc(poly=None, initialize=False)
         n._crc = self._crc
         n.digest_size = self.digest_size
@@ -77,14 +121,25 @@ class Crc:
         return n
 
     def copy(self):
+        '''Create a new instance of the Crc class initialized to the same
+        values as the original instance.  The current CRC is set to the current
+        value.  This allows multiple CRC calculations using a common initial
+        string.
+        '''
         c = self.new()
         c.crcValue = self.crcValue
         return c
 
     def update(self, data):
+        '''Update the current CRC value using the string specified as the data
+        parameter.
+        '''
         self.crcValue = self._crc(data, self.crcValue)
 
     def digest(self):
+        '''Return the current CRC value as a string of bytes.  The length of
+        this string is specified in the digest_size attribute.
+        '''
         n = self.digest_size
         crc = self.crcValue
         lst = []
@@ -96,6 +151,9 @@ class Crc:
         return ''.join(lst)
 
     def hexdigest(self):
+        '''Return the current CRC value as a string of hex digits.  The length
+        of this string is twice the digest_size attribute.
+        '''
         n = self.digest_size
         crc = self.crcValue
         lst = []
@@ -107,6 +165,20 @@ class Crc:
         return ''.join(lst)
 
     def generateCode(self, functionName, out, dataType=None, crcType=None):
+        '''Generate a C/C++ function.
+
+        functionName -- String specifying the name of the function.
+
+        out -- An open file-like object with a write method.  This specifies
+        where the generated code is written.
+
+        dataType -- An optional parameter specifying the data type of the input
+        data to the function.  Defaults to UINT8.
+
+        crcType -- An optional parameter specifying the data type of the CRC
+        value.  Defaults to one of UINT8, UINT16, UINT32, or UINT64 depending
+        on the size of the CRC value.
+        '''
         if dataType is None:
             dataType = 'UINT8'
 
@@ -160,9 +232,9 @@ class Crc:
 def mkCrcFun(poly, initCrc=~0L, rev=True):
     '''Return a function that computes the CRC using the specified polynomial.
 
-    poly - integer representation of the generator polynomial
-    initCrc - default initial CRC value
-    rev - when true, indicates that the data is processed bit reversed.
+    poly -- integer representation of the generator polynomial
+    initCrc -- default initial CRC value
+    rev -- when true, indicates that the data is processed bit reversed.
 
     The returned function has the following user interface
     def crcfun(data, crc=initCrc):
@@ -322,7 +394,8 @@ _codeTemplate = '''// Automatically generated CRC function
     static const %(crcType)s table[256] = {%(crcTable)s
     };
   
-    while(len > 0) {
+    while (len > 0)
+    {
         crc = %(crcAlgor)s;
         data++;
         len--;
