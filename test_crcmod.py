@@ -125,7 +125,7 @@ class poly:
     '''Class implementing polynomials over the field of integers mod 2'''
     def __init__(self,p):
         p = long(p)
-        if p < 0: raise 'invalid polynomial'
+        if p < 0: raise ValueError('invalid polynomial')
         self.p = p
 
     def __long__(self):
@@ -176,7 +176,7 @@ class poly:
         m = self.deg()
         v = other.p
         n = other.deg()
-        if v == 0: raise ZeroDivisionError, 'polynomial division by zero'
+        if v == 0: raise ZeroDivisionError('polynomial division by zero')
         if n == 0: return (self,poly(0))
         if m < n: return (poly(0),self)
         k = m-n
