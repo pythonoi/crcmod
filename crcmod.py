@@ -110,7 +110,12 @@ class Crc:
             shift = 8*(self.digest_size - 1)
             crcAlgor = 'table[*data ^ (%%s)(crc >> %d)] ^ (crc << 8)' % shift
 
-        fmt = '0x%%0%dXU,' % (2*self.digest_size)
+        fmt = '0x%%0%dX' % (2*self.digest_size)
+        if self.digest_size <= 4:
+            fmt = fmt + 'U,'
+        else:
+            fmt = fmt + 'ULL,'
+
         n = {1:8, 2:8, 4:4, 8:2}[self.digest_size]
 
         lst = []

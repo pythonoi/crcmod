@@ -297,3 +297,27 @@ test(mkCrcFun(g64b,0,0), crc64bp('T'), crc64bp(msg))
 
 print 'All tests PASS'
 
+#-----------------------------------------------------------------------------
+# Demonstrate the use of the code generator
+
+from crcmod import Crc
+
+print 'Generating examples.c'
+out = open('examples.c', 'w')
+out.write('''// Define the required data types
+typedef unsigned char      UINT8;
+typedef unsigned short     UINT16;
+typedef unsigned int       UINT32;
+typedef unsigned long long UINT64;
+''')
+Crc(g8, rev=False).generateCode('crc8',out)
+Crc(g8, rev=True).generateCode('crc8r',out)
+Crc(g16, rev=False).generateCode('crc16',out)
+Crc(g16, rev=True).generateCode('crc16r',out)
+Crc(g32, rev=False).generateCode('crc32',out)
+Crc(g32, rev=True).generateCode('crc32r',out)
+Crc(g64b, rev=False).generateCode('crc64',out)
+Crc(g64b, rev=True).generateCode('crc64r',out)
+out.close()
+print 'Done'
+
