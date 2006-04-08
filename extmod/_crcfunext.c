@@ -25,7 +25,16 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+// Force Py_ssize_t to be used for s# conversions.
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
+
+// Make compatible with previous Python versions
+#if PY_VERSION_HEX < 0x02050000
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
 
 // Note: the type declarations are set up to work on 32-bit platforms using the
 // GNU C compiler.  They will need to be adjusted for other platforms.  In
@@ -70,9 +79,9 @@ _crc8(PyObject* self, PyObject* args)
 {
     UINT8 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT8* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT8, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -111,9 +120,9 @@ _crc8r(PyObject* self, PyObject* args)
 {
     UINT8 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT8* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT8, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -151,9 +160,9 @@ _crc16(PyObject* self, PyObject* args)
 {
     UINT16 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT16* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT16, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -192,9 +201,9 @@ _crc16r(PyObject* self, PyObject* args)
 {
     UINT16 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT16* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT16, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -232,9 +241,9 @@ _crc32(PyObject* self, PyObject* args)
 {
     UINT32 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT32* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -273,9 +282,9 @@ _crc32r(PyObject* self, PyObject* args)
 {
     UINT32 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT32* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -313,9 +322,9 @@ _crc64(PyObject* self, PyObject* args)
 {
     UINT64 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT64* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT64, &data, &dataLen, &crc,
                             &table, &tableLen))
@@ -354,9 +363,9 @@ _crc64r(PyObject* self, PyObject* args)
 {
     UINT64 crc;
     UINT8* data;
-    int dataLen;
+    Py_ssize_t dataLen;
     UINT64* table;
-    int tableLen;
+    Py_ssize_t tableLen;
 
     if (!PyArg_ParseTuple(args, INPUT64, &data, &dataLen, &crc,
                             &table, &tableLen))
