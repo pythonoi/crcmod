@@ -1,4 +1,4 @@
-1.3 Enhancement Release - Apr ???, 2006
+1.3 Enhancement Release - Apr 22, 2006
 
 * Make compatible with Python 2.5 on 64-bit platforms.
 * Improve the install procedure.
