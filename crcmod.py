@@ -24,13 +24,13 @@ Redundancy Check.  Any 8, 16, 32, or 64 bit polynomial can be used.
 
 The following are the public components of this module.
 
-Crc -- a class that creates instances providing the same interface as the md5
-and sha modules in the Python standard library.  These instances also provide
-a method for generating a C/C++ function to compute the CRC.
+Crc -- a class that creates instances providing the same interface as the
+md5 and sha modules in the Python standard library.  These instances also
+provide a method for generating a C/C++ function to compute the CRC.
 
 mkCrcFun -- create a Python function to compute the CRC using the specified
-polynomial and initial value.  This provides a much simpler interface if all
-you need is a function for CRC calculation.
+polynomial and initial value.  This provides a much simpler interface if
+all you need is a function for CRC calculation.
 '''
 
 __all__ = '''mkCrcFun Crc
