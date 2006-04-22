@@ -55,31 +55,22 @@ research to find one suitable for your application.  Examples are available in
 the unit test script test_crcmod.py and the timing script timing_test.py.
 
 If you need to generate code for another language, I suggest you subclass the
-Crc class and replace the method generate code.  Use generateCode as a model
+Crc class and replace the method generateCode.  Use generateCode as a model
 for the new version.
 
 ------------
 Installation
 ------------
 
-To install this module, copy the files crcmod.py and _crcfunpy.py to any
-directory on your Python path.  Then run the unit test script test_crcmod.py.
+The crcmod package is installed using distutils.  If you have the tools
+installed to build a Python extension module, run the following command.
 
-If you intend to use this module in a Python application (as opposed to just
-using the code generator), you should build the extension module that replaces
-_crcfunpy.py.  The build process uses the distutils module so it should build
-correctly for any platform.  To perform the build, just run the following from
-the extmod directory.
+python setup.py install
 
-python setup.py build_ext --inplace
+If you don't have the tools to build an extension module, you will need to
+install the pure Python version using the following command.
 
-When the build completes, copy the _crcfunext module to the directory where you
-placed crcmod.py.  Note that the file extension for _crcfunext is platform
-dependent.  On many Unix and all Linux systems, the extension is .so.  On
-Windows, it is .pyd.
-
-Note that crcmod automatically selects the extension module if it is available
-so you don't need to do anything more.
+python setup_py.py install
 
 ------------
 Unit Testing
