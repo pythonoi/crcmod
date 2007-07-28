@@ -49,6 +49,18 @@ def _crc16r(data, crc, table):
         crc = table[ord(x) ^ (crc & 0xFF)] ^ (crc >> 8)
     return crc
 
+def _crc24(data, crc, table):
+    crc = crc & 0xFFFFFF
+    for x in data:
+        crc = table[ord(x) ^ (int(crc>>16) & 0xFF)] ^ ((crc << 8) & 0xFFFF00)
+    return crc
+
+def _crc24r(data, crc, table):
+    crc = crc & 0xFFFFFF
+    for x in data:
+        crc = table[ord(x) ^ int(crc & 0xFF)] ^ (crc >> 8)
+    return crc
+
 def _crc32(data, crc, table):
     crc = crc & 0xFFFFFFFFL
     for x in data:
