@@ -61,6 +61,7 @@ typedef unsigned long long UINT64;
 // what should be a platform independent manner.
 #define BYTE0(x) ((UINT8)(x))
 #define BYTE1(x) ((UINT8)((x) >> 8))
+#define BYTE2(x) ((UINT8)((x) >> 16))
 #define BYTE3(x) ((UINT8)((x) >> 24))
 #define BYTE7(x) ((UINT8)((x) >> 56))
 
@@ -217,6 +218,88 @@ _crc16r(PyObject* self, PyObject* args)
         return NULL;
     }
 
+    while (dataLen--)
+    {
+        crc = table[*data ^ BYTE0(crc)] ^ (crc >> 8);
+        data++;
+    }
+
+    return PyInt_FromLong((long)crc);
+}
+
+//-----------------------------------------------------------------------------
+// Compute a 24-bit crc over the input data.
+// Inputs:
+//   data - string containing the data
+//   crc - unsigned integer containing the initial crc
+//   table - string containing the 24-bit table corresponding to the generator
+//           polynomial.
+// Returns:
+//   crc - unsigned integer containing the resulting crc
+
+static PyObject*
+_crc24(PyObject* self, PyObject* args)
+{
+    UINT32 crc;
+    UINT8* data;
+    Py_ssize_t dataLen;
+    UINT32* table;
+    Py_ssize_t tableLen;
+
+    if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
+                            &table, &tableLen))
+    {
+        return NULL;
+    }
+
+    if (tableLen != 256*4)
+    {
+        PyErr_SetString(PyExc_ValueError, "invalid CRC table");
+        return NULL;
+    }
+
+    while (dataLen--)
+    {
+        crc = table[*data ^ BYTE2(crc)] ^ (crc << 8);
+        data++;
+    }
+
+    return PyInt_FromLong((long)(crc & 0xFFFFFFU));
+}
+
+//-----------------------------------------------------------------------------
+// Compute a 24-bit crc over the input data.  The data stream is bit reversed
+// during the computation.
+// Inputs:
+//   data - string containing the data
+//   crc - unsigned integer containing the initial crc
+//   table - string containing the 24-bit table corresponding to the generator
+//           polynomial.
+// Returns:
+//   crc - unsigned integer containing the resulting crc
+
+static PyObject*
+_crc24r(PyObject* self, PyObject* args)
+{
+    UINT32 crc;
+    UINT8* data;
+    Py_ssize_t dataLen;
+    UINT32* table;
+    Py_ssize_t tableLen;
+
+    if (!PyArg_ParseTuple(args, INPUT32, &data, &dataLen, &crc,
+                            &table, &tableLen))
+    {
+        return NULL;
+    }
+
+    if (tableLen != 256*4)
+    {
+        PyErr_SetString(PyExc_ValueError, "invalid CRC table");
+        return NULL;
+    }
+
+    crc = crc & 0xFFFFFFU;
     while (dataLen--)
     {
         crc = table[*data ^ BYTE0(crc)] ^ (crc >> 8);
@@ -394,6 +477,8 @@ static PyMethodDef methodTable[] = {
 {"_crc8r", _crc8r, METH_VARARGS},
 {"_crc16", _crc16, METH_VARARGS},
 {"_crc16r", _crc16r, METH_VARARGS},
+{"_crc24", _crc24, METH_VARARGS},
+{"_crc24r", _crc24r, METH_VARARGS},
 {"_crc32", _crc32, METH_VARARGS},
 {"_crc32r", _crc32r, METH_VARARGS},
 {"_crc64", _crc64, METH_VARARGS},
