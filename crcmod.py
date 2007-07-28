@@ -20,7 +20,7 @@
 # SOFTWARE.
 #-----------------------------------------------------------------------------
 '''crcmod is a Python module for gererating objects that compute the Cyclic
-Redundancy Check.  Any 8, 16, 32, or 64 bit polynomial can be used.  
+Redundancy Check.  Any 8, 16, 24, 32, or 64 bit polynomial can be used.  
 
 The following are the public components of this module.
 
@@ -69,7 +69,7 @@ class Crc:
     poly -- The generator polynomial to use in calculating the CRC.  The value
     is specified as a Python integer or long integer.  The bits in this integer
     are the coefficients of the polynomial.  The only polynomials allowed are
-    those that generate 8, 16, 32, or 64 bit CRCs.
+    those that generate 8, 16, 24, 32, or 64 bit CRCs.
 
     initCrc -- Initial value used to start the CRC calculation.  Defaults to
     all bits set because that starting value will take leading zero bytes into
@@ -183,7 +183,10 @@ class Crc:
             dataType = 'UINT8'
 
         if crcType is None:
-            crcType = 'UINT%d' % (8*self.digest_size)
+            size = 8*self.digest_size
+            if size == 24:
+                size = 32
+            crcType = 'UINT%d' % size
 
         if self.digest_size == 1:
             # Both 8-bit CRC algorithms are the same
@@ -206,7 +209,7 @@ class Crc:
             fmt = fmt + 'ULL,'
 
         # Select the number of entries per row in the output code.
-        n = {1:8, 2:8, 4:4, 8:2}[self.digest_size]
+        n = {1:8, 2:8, 3:4, 4:4, 8:2}[self.digest_size]
 
         lst = []
         for i, val in enumerate(self.table):
@@ -218,6 +221,17 @@ class Crc:
         if self.reverse:
             poly = poly + ', bit reverse algorithm'
 
+        preCondition = ''
+        postCondition = ''
+        if self.digest_size == 3:
+            # The 24-bit CRC needs to be conditioned so that only 24-bits are
+            # used from the 32-bit variable.
+            if self.reverse:
+                preCondition = '\n    crc = crc & 0xFFFFFFU;'
+            else:
+                postCondition = '\n    crc = crc & 0xFFFFFFU;'
+                
+
         parms = {
             'dataType' : dataType,
             'crcType' : crcType,
@@ -225,6 +239,8 @@ class Crc:
             'crcAlgor' : crcAlgor % dataType,
             'crcTable' : ''.join(lst),
             'poly' : poly,
+            'preCondition' : preCondition,
+            'postCondition' : postCondition,
         }
         out.write(_codeTemplate % parms) 
 
@@ -252,9 +268,9 @@ def mkCrcFun(poly, initCrc=~0L, rev=True):
 # of bits in the CRC.
 
 def _verifyPoly(poly):
-    msg = 'The degree of the polynomial must be 8, 16, 32 or 64'
+    msg = 'The degree of the polynomial must be 8, 16, 24, 32 or 64'
     poly = long(poly) # Use a common representation for all operations
-    for n in 8,16,32,64:
+    for n in (8,16,24,32,64):
         low = 1L<<n
         high = low*2
         if low <= poly < high:
@@ -334,6 +350,7 @@ def _mkTable_r(poly, n):
 _sizeMap = {
      8 : [_crcfun._crc8, _crcfun._crc8r],
     16 : [_crcfun._crc16, _crcfun._crc16r],
+    24 : [_crcfun._crc24, _crcfun._crc24r],
     32 : [_crcfun._crc32, _crcfun._crc32r],
     64 : [_crcfun._crc64, _crcfun._crc64r],
 }
@@ -350,6 +367,8 @@ for typeCode in 'B H I L Q'.split():
     size = {1:8, 2:16, 4:32, 8:64}.get(struct.calcsize(typeCode),None)
     if size is not None and size not in _sizeToTypeCode:
         _sizeToTypeCode[size] = '256%s' % typeCode
+
+_sizeToTypeCode[24] = _sizeToTypeCode[32]
 
 del typeCode, size
 
@@ -393,13 +412,13 @@ _codeTemplate = '''// Automatically generated CRC function
 {
     static const %(crcType)s table[256] = {%(crcTable)s
     };
-  
+    %(preCondition)s
     while (len > 0)
     {
         crc = %(crcAlgor)s;
         data++;
         len--;
-    }
+    }%(postCondition)s
     return crc;
 }
 '''
