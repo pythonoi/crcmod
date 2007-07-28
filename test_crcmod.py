@@ -62,6 +62,12 @@ test(mkCrcFun(g16,-1,1), 0x1B26, 0xF56E)
 test(mkCrcFun(g16,0,1),  0x14A1, 0xC28D)
 
 #-----------------------------------------------------------------------------
+g24 = 0x15D6DCB
+test(mkCrcFun(g24,0,0),  0xBCC49D, 0xC4B507)
+test(mkCrcFun(g24,-1,1), 0x59BD0E, 0x0AAA37)
+test(mkCrcFun(g24,0,1),  0xD52B0F, 0x1523AB)
+
+#-----------------------------------------------------------------------------
 # This is the standard AUTODIN-II polynomial which appears to be used in a
 # wide variety of standards and applications.
 
@@ -257,6 +263,16 @@ def crc16p(d):
     p = poly(p)
     return long(p*x16p%g16p)
 
+g24p = poly(g24)
+x24p = poly(1L<<24)
+def crc24p(d):
+    d = map(ord, d)
+    p = 0L
+    for i in d:
+        p = p*256L + i
+    p = poly(p)
+    return long(p*x24p%g24p)
+
 g32p = poly(g32)
 x32p = poly(1L<<32)
 def crc32p(d):
@@ -291,6 +307,7 @@ def crc64bp(d):
 
 test(mkCrcFun(g8,0,0),  crc8p('T'),  crc8p(msg))
 test(mkCrcFun(g16,0,0), crc16p('T'), crc16p(msg))
+test(mkCrcFun(g24,0,0), crc24p('T'), crc24p(msg))
 test(mkCrcFun(g32,0,0), crc32p('T'), crc32p(msg))
 test(mkCrcFun(g64a,0,0), crc64ap('T'), crc64ap(msg))
 test(mkCrcFun(g64b,0,0), crc64bp('T'), crc64bp(msg))
@@ -314,6 +331,8 @@ Crc(g8, rev=False).generateCode('crc8',out)
 Crc(g8, rev=True).generateCode('crc8r',out)
 Crc(g16, rev=False).generateCode('crc16',out)
 Crc(g16, rev=True).generateCode('crc16r',out)
+Crc(g24, rev=False).generateCode('crc24',out)
+Crc(g24, rev=True).generateCode('crc24r',out)
 Crc(g32, rev=False).generateCode('crc32',out)
 Crc(g32, rev=True).generateCode('crc32r',out)
 Crc(g64b, rev=False).generateCode('crc64',out)
