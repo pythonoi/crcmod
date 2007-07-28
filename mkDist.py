@@ -1,6 +1,6 @@
 import os, shutil
 
-version = '1.3'
+version = '1.4'
 
 curdir = os.getcwd()
 crcdir = os.path.join(curdir,'dist/crcmod-%s' % version)
