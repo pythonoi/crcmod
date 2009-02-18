@@ -22,7 +22,8 @@
 # SOFTWARE.
 #-----------------------------------------------------------------------------
 
-from crcmod import mkCrcFun, _usingExtension
+from crcmod import mkCrcFun
+from crcmod.crcmod import _usingExtension
 
 print('_usingExtension', _usingExtension)
 

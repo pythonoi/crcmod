@@ -41,10 +41,10 @@ __all__ = '''mkCrcFun Crc
 # If the extension module was not built, drop back to the Python implementation
 # even though it is significantly slower.
 try:
-    import _crcfunext as _crcfun
+    import crcmod._crcfunext as _crcfun
     _usingExtension = True
 except ImportError:
-    import _crcfunpy as _crcfun
+    import crcmod._crcfunpy as _crcfun
     _usingExtension = False
 
 import sys, struct

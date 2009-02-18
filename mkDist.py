@@ -56,7 +56,7 @@ copy3('_crcfunpy.py', moddir3)
 init_file = os.path.join(moddir,'__init__.py')
 
 fd = open(init_file,'w')
-fd.write('''from crcmod import *
+fd.write('''from crcmod.crcmod import *
 __doc__ = crcmod.__doc__
 ''')
 fd.close()
