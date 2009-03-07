@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 # Test script for crcmod.
 #
-# Copyright (c) 2004  Raymond L. Buvel
+# Copyright (c) 2009  Raymond L. Buvel
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,10 @@
 # SOFTWARE.
 #-----------------------------------------------------------------------------
 
-from crcmod import mkCrcFun
+from crcmod import mkCrcFun, Crc
+from crcmod.crcmod import _usingExtension
+
+print '_usingExtension', _usingExtension
 
 #-----------------------------------------------------------------------------
 # Test function to verify CRC functions against the test cases listed in
@@ -312,12 +315,36 @@ test(mkCrcFun(g32,0,0), crc32p('T'), crc32p(msg))
 test(mkCrcFun(g64a,0,0), crc64ap('T'), crc64ap(msg))
 test(mkCrcFun(g64b,0,0), crc64bp('T'), crc64bp(msg))
 
+#-----------------------------------------------------------------------------
+# Verify the methods.
+
+crc = Crc(g32)
+
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0xFFFFFFFF
+crcValue = 0xFFFFFFFF'''
+assert str(crc) == str_rep
+assert crc.digest() == '\xff\xff\xff\xff'
+assert crc.hexdigest() == 'FFFFFFFF'
+
+crc.update(msg)
+assert crc.crcValue == 0xF7B400A7L
+assert crc.digest() == '\xf7\xb4\x00\xa7'
+assert crc.hexdigest() == 'F7B400A7'
+
+x = crc.copy()
+assert x is not crc
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0xFFFFFFFF
+crcValue = 0xF7B400A7'''
+assert str(crc) == str_rep
+
 print 'All tests PASS'
 
 #-----------------------------------------------------------------------------
 # Demonstrate the use of the code generator
-
-from crcmod import Crc
 
 print 'Generating examples.c'
 out = open('examples.c', 'w')

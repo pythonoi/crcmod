@@ -22,7 +22,7 @@
 # SOFTWARE.
 #-----------------------------------------------------------------------------
 
-from crcmod import mkCrcFun
+from crcmod import mkCrcFun, Crc
 from crcmod.crcmod import _usingExtension
 
 print('_usingExtension', _usingExtension)
@@ -294,12 +294,36 @@ test(mkCrcFun(g32,0,0), crc32p(b'T'), crc32p(msg))
 test(mkCrcFun(g64a,0,0), crc64ap(b'T'), crc64ap(msg))
 test(mkCrcFun(g64b,0,0), crc64bp(b'T'), crc64bp(msg))
 
+#-----------------------------------------------------------------------------
+# Verify the methods.
+
+crc = Crc(g32)
+
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0xFFFFFFFF
+crcValue = 0xFFFFFFFF'''
+assert str(crc) == str_rep
+assert crc.digest() == b'\xff\xff\xff\xff'
+assert crc.hexdigest() == 'FFFFFFFF'
+
+crc.update(msg)
+assert crc.crcValue == 0xF7B400A7
+assert crc.digest() == b'\xf7\xb4\x00\xa7'
+assert crc.hexdigest() == 'F7B400A7'
+
+x = crc.copy()
+assert x is not crc
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0xFFFFFFFF
+crcValue = 0xF7B400A7'''
+assert str(crc) == str_rep
+
 print('All tests PASS')
 
 #-----------------------------------------------------------------------------
 # Demonstrate the use of the code generator
-
-from crcmod import Crc
 
 print('Generating examples.c')
 out = open('examples.c', 'w')
