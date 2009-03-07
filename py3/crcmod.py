@@ -145,11 +145,11 @@ class Crc:
         crc = self.crcValue
         lst = []
         while n > 0:
-            lst.append(chr(crc & 0xFF))
+            lst.append(crc & 0xFF)
             crc = crc >> 8
             n -= 1
         lst.reverse()
-        return ''.join(lst)
+        return bytes(lst)
 
     def hexdigest(self):
         '''Return the current CRC value as a string of hex digits.  The length
