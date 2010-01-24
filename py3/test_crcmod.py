@@ -24,6 +24,9 @@
 
 from crcmod import mkCrcFun, Crc
 from crcmod.crcmod import _usingExtension
+from crcmod.predefined import PredefinedCrc
+from crcmod.predefined import mkPredefinedCrcFun
+from crcmod.predefined import _crc_definitions as _predefined_crc_definitions
 
 print('_usingExtension', _usingExtension)
 
@@ -302,6 +305,7 @@ crc = Crc(g32)
 str_rep = '''poly = 0x104C11DB7
 reverse = True
 initCrc  = 0xFFFFFFFF
+xorOut   = 0x00000000
 crcValue = 0xFFFFFFFF'''
 assert str(crc) == str_rep
 assert crc.digest() == b'\xff\xff\xff\xff'
@@ -317,8 +321,80 @@ assert x is not crc
 str_rep = '''poly = 0x104C11DB7
 reverse = True
 initCrc  = 0xFFFFFFFF
+xorOut   = 0x00000000
 crcValue = 0xF7B400A7'''
 assert str(crc) == str_rep
+assert str(x) == str_rep
+
+# Verify methods when using xorOut
+
+crc = Crc(g32, initCrc=0, xorOut=~0)
+
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0x00000000
+xorOut   = 0xFFFFFFFF
+crcValue = 0x00000000'''
+assert str(crc) == str_rep
+assert crc.digest() == b'\x00\x00\x00\x00'
+assert crc.hexdigest() == '00000000'
+
+crc.update(msg)
+assert crc.crcValue == 0x84BFF58
+assert crc.digest() == b'\x08\x4b\xff\x58'
+assert crc.hexdigest() == '084BFF58'
+
+x = crc.copy()
+assert x is not crc
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0x00000000
+xorOut   = 0xFFFFFFFF
+crcValue = 0x084BFF58'''
+assert str(crc) == str_rep
+assert str(x) == str_rep
+
+y = crc.new()
+assert y is not crc
+assert y is not x
+str_rep = '''poly = 0x104C11DB7
+reverse = True
+initCrc  = 0x00000000
+xorOut   = 0xFFFFFFFF
+crcValue = 0x00000000'''
+assert str(y) == str_rep
+
+#-----------------------------------------------------------------------------
+# Verify the predefined CRCs
+
+# Verify predefined CRC functions
+test(mkPredefinedCrcFun('crc-aug-ccitt'), 0xD6ED, 0x5637)
+test(mkPredefinedCrcFun('x-25'), 0xE4D9, 0x0A91)
+test(mkPredefinedCrcFun('crc-32'), 0xBE047A60, 0x084BFF58)
+
+# Verify predefined CRC classes
+crc1 = PredefinedCrc('crc-32')
+crc1.update(msg)
+assert crc1.crcValue == 0x84BFF58
+crc2 = crc1.new()
+assert crc1.crcValue == 0x84BFF58
+assert crc2.crcValue == 0x00000000
+crc2.update(msg)
+assert crc1.crcValue == 0x84BFF58
+assert crc2.crcValue == 0x84BFF58
+
+for table_entry in _predefined_crc_definitions:
+    # Check predefined function
+    crc_func = mkPredefinedCrcFun(table_entry['name'])
+    calc_value = crc_func(b"123456789")
+    if calc_value != table_entry['check']:
+        raise Exception("Check failed for predefined algorithm '%s'" % table_entry['name'])
+
+    # Check predefined class
+    crc1 = PredefinedCrc(table_entry['name'])
+    crc1.update(b"123456789")
+    if crc1.crcValue != table_entry['check']:
+        raise Exception("Check failed for predefined algorithm '%s'" % table_entry['name'])
 
 print('All tests PASS')
 

@@ -57,9 +57,9 @@ class Crc:
     hashlib module in the Python standard library.  See the documentation of
     this module for examples of how to use a Crc instance.
 
-    The string representation of a Crc instance identifies the polynomial and
-    the initial and current CRC values.  The print statement can be used to
-    output this information.
+    The string representation of a Crc instance identifies the polynomial,
+    initial value, XOR out value, and the current CRC value.  The print
+    statement can be used to output this information.
 
     If you need to generate a C/C++ function for use in another application,
     use the generateCode method.  If you need to generate code for another
@@ -72,27 +72,38 @@ class Crc:
     coefficients of the polynomial.  The only polynomials allowed are those
     that generate 8, 16, 24, 32, or 64 bit CRCs.
 
-    initCrc -- Initial value used to start the CRC calculation.  Defaults to
-    all bits set because that starting value will take leading zero bytes into
-    account.  Starting with zero will ignore all leading zero bytes.
+    initCrc -- Initial value used to start the CRC calculation.  This initial
+    value should be the initial shift register value XORed with the final XOR
+    value.  That is equivalent to the CRC result the algorithm should return for
+    a zero-length string.  Defaults to all bits set because that starting value
+    will take leading zero bytes into account.  Starting with zero will ignore
+    all leading zero bytes.
 
     rev -- A flag that selects a bit reversed algorithm when True.  Defaults to
     True because the bit reversed algorithms are more efficient.
+
+    xorOut -- Final value to XOR with the calculated CRC value.  Used by some
+    CRC algorithms.  Defaults to zero.
     '''
-    def __init__(self, poly, initCrc=~0, rev=True, initialize=True):
+    def __init__(self, poly, initCrc=~0, rev=True, xorOut=0, initialize=True):
         if not initialize:
             # Don't want to perform the initialization when using new or copy
             # to create a new instance.
             return
 
-        x = _mkCrcFun(poly, initCrc, rev)
-        self._crc = x[0]
-        self.digest_size = x[1]//8
-        self.initCrc = x[2]
-        self.table = x[3]
-        self.crcValue = self.initCrc
-        self.reverse = rev
+        (sizeBits, initCrc, xorOut) = _verifyParams(poly, initCrc, xorOut)
+        self.digest_size = sizeBits//8
+        self.initCrc = initCrc
+        self.xorOut = xorOut
+
         self.poly = poly
+        self.reverse = rev
+
+        (crcfun, table) = _mkCrcFun(poly, sizeBits, initCrc, rev, xorOut)
+        self._crc = crcfun
+        self.table = table
+
+        self.crcValue = self.initCrc
 
     def __str__(self):
         lst = []
@@ -100,6 +111,7 @@ class Crc:
         lst.append('reverse = %s' % self.reverse)
         fmt = '0x%%0%dX' % (self.digest_size*2)
         lst.append('initCrc  = %s' % (fmt % self.initCrc))
+        lst.append('xorOut   = %s' % (fmt % self.xorOut))
         lst.append('crcValue = %s' % (fmt % self.crcValue))
         return '\n'.join(lst)
 
@@ -113,6 +125,7 @@ class Crc:
         n._crc = self._crc
         n.digest_size = self.digest_size
         n.initCrc = self.initCrc
+        n.xorOut = self.xorOut
         n.table = self.table
         n.crcValue = self.initCrc
         n.reverse = self.reverse
@@ -246,18 +259,22 @@ class Crc:
         out.write(_codeTemplate % parms) 
 
 #-----------------------------------------------------------------------------
-def mkCrcFun(poly, initCrc=~0, rev=True):
+def mkCrcFun(poly, initCrc=~0, rev=True, xorOut=0):
     '''Return a function that computes the CRC using the specified polynomial.
 
     poly -- integer representation of the generator polynomial
     initCrc -- default initial CRC value
     rev -- when true, indicates that the data is processed bit reversed.
+    xorOut -- the final XOR value
 
     The returned function has the following user interface
     def crcfun(data, crc=initCrc):
     '''
 
-    return _mkCrcFun(poly, initCrc, rev)[0]
+    # First we must verify the params
+    (sizeBits, initCrc, xorOut) = _verifyParams(poly, initCrc, xorOut)
+    # Make the function (and table), return the function
+    return _mkCrcFun(poly, sizeBits, initCrc, rev, xorOut)[0]
 
 #-----------------------------------------------------------------------------
 # Naming convention:
@@ -362,34 +379,59 @@ _sizeToTypeCode[24] = _sizeToTypeCode[32]
 del typeCode, size
 
 #-----------------------------------------------------------------------------
-# The following function returns a Python function to compute the CRC.  The
-# returned function calls a low level function that is written in C if the
-# extension module could be loaded.  Otherwise, a Python implementation is
-# used.  In addition to this function, the size of the CRC, the initial CRC,
-# and a list containing the CRC table are returned.
+# The following function validates the parameters of the CRC, namely,
+# poly, and initial/final XOR values.
+# It returns the size of the CRC (in bits), and "sanitized" initial/final XOR values.
 
-def _mkCrcFun(poly, initCrc, rev):
-    size = _verifyPoly(poly)
+def _verifyParams(poly, initCrc, xorOut=None):
+    sizeBits = _verifyPoly(poly)
 
+    # First return value is the poly size (in bits)
+    out = [sizeBits]
+
+    mask = (1<<sizeBits) - 1
     # Adjust the initial CRC to the correct data type (unsigned value).
-    mask = (1<<size) - 1
     initCrc = initCrc & mask
+    out.append(initCrc)
+    # Similar for XOR-out value.
+    if xorOut != None:
+        xorOut = xorOut & mask
+        out.append(xorOut)
+    return out
 
+
+#-----------------------------------------------------------------------------
+# The following function returns a Python function to compute the CRC.
+#
+# It must be passed parameters that are already verified & sanitized by
+# _verifyParams().
+#
+# The returned function calls a low level function that is written in C if the
+# extension module could be loaded.  Otherwise, a Python implementation is
+# used.
+#
+# In addition to this function, a list containing the CRC table is returned.
+
+def _mkCrcFun(poly, sizeBits, initCrc, rev, xorOut):
     if rev:
-        tableList = _mkTable_r(poly, size)
-        _fun = _sizeMap[size][1]
+        tableList = _mkTable_r(poly, sizeBits)
+        _fun = _sizeMap[sizeBits][1]
     else:
-        tableList = _mkTable(poly, size)
-        _fun = _sizeMap[size][0]
+        tableList = _mkTable(poly, sizeBits)
+        _fun = _sizeMap[sizeBits][0]
 
     _table = tableList
     if _usingExtension:
-        _table = struct.pack(_sizeToTypeCode[size], *tableList)
+        _table = struct.pack(_sizeToTypeCode[sizeBits], *tableList)
 
-    def crcfun(data, crc=initCrc, table=_table, fun=_fun):
-        return fun(data, crc, table)
+    if xorOut == 0:
+        def crcfun(data, crc=initCrc, table=_table, fun=_fun):
+            return fun(data, crc, table)
+    else:
+        def crcfun(data, crc=initCrc, table=_table, fun=_fun):
+            return xorOut ^ fun(data, xorOut ^ crc, table)
 
-    return crcfun, size, initCrc, tableList
+    return crcfun, tableList
 
 #-----------------------------------------------------------------------------
 _codeTemplate = '''// Automatically generated CRC function
