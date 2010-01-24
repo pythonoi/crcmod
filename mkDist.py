@@ -1,6 +1,6 @@
 import os, shutil
 
-version = '1.5'
+version = '1.6'
 
 curdir = os.getcwd()
 
@@ -49,9 +49,11 @@ copy('changelog', crcdir)
 
 copy('crcmod.py', moddir)
 copy('_crcfunpy.py', moddir)
+copy('predefined.py', moddir)
 
 copy3('crcmod.py', moddir3)
 copy3('_crcfunpy.py', moddir3)
+copy3('predefined.py', moddir3)
 
 init_file = os.path.join(moddir,'__init__.py')
 
