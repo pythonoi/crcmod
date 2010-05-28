@@ -1,17 +1,21 @@
 import os, shutil
 
-version = '1.6.1'
+version = '1.7'
 
 curdir = os.getcwd()
 
 crcdir = os.path.join(curdir,'dist/crcmod-%s' % version)
-moddir = os.path.join(crcdir,'crcmod')
-srcdir = os.path.join(crcdir,'src')
-testdir = os.path.join(crcdir,'test')
 
-curdir3 = os.path.join(curdir,'py3')
+curdir2 = os.path.join(curdir,'python2')
 
-crcdir3 = os.path.join(crcdir,'py3')
+crcdir2 = os.path.join(crcdir,'python2')
+moddir2 = os.path.join(crcdir2,'crcmod')
+srcdir2 = os.path.join(crcdir2,'src')
+testdir2 = os.path.join(crcdir2,'test')
+
+curdir3 = os.path.join(curdir,'python3')
+
+crcdir3 = os.path.join(crcdir,'python3')
 moddir3 = os.path.join(crcdir3,'crcmod')
 srcdir3 = os.path.join(crcdir3,'src')
 testdir3 = os.path.join(crcdir3,'test')
@@ -21,10 +25,10 @@ testdir3 = os.path.join(crcdir3,'test')
 if os.path.isdir(crcdir):
     shutil.rmtree(crcdir)
 
-os.makedirs(crcdir)
-os.makedirs(moddir)
-os.makedirs(srcdir)
-os.makedirs(testdir)
+os.makedirs(crcdir2)
+os.makedirs(moddir2)
+os.makedirs(srcdir2)
+os.makedirs(testdir2)
 
 os.makedirs(crcdir3)
 os.makedirs(moddir3)
@@ -37,6 +41,11 @@ def copy(fname, dir):
     src = os.path.join(curdir,fname)
     shutil.copyfile(src, dst)
 
+def copy2(fname, dir):
+    dst = os.path.join(dir,fname)
+    src = os.path.join(curdir2,fname)
+    shutil.copyfile(src, dst)
+
 def copy3(fname, dir):
     dst = os.path.join(dir,fname)
     src = os.path.join(curdir3,fname)
@@ -47,15 +56,15 @@ def copy3(fname, dir):
 copy('README', crcdir)
 copy('changelog', crcdir)
 
-copy('crcmod.py', moddir)
-copy('_crcfunpy.py', moddir)
-copy('predefined.py', moddir)
+copy2('crcmod.py', moddir2)
+copy2('_crcfunpy.py', moddir2)
+copy2('predefined.py', moddir2)
 
 copy3('crcmod.py', moddir3)
 copy3('_crcfunpy.py', moddir3)
 copy3('predefined.py', moddir3)
 
-init_file = os.path.join(moddir,'__init__.py')
+init_file = os.path.join(moddir2,'__init__.py')
 
 fd = open(init_file,'w')
 fd.write('''try:
@@ -69,16 +78,26 @@ fd.close()
 
 shutil.copyfile(init_file, os.path.join(moddir3,'__init__.py'))
 
-shutil.copyfile('extmod/_crcfunext.c', os.path.join(srcdir,'_crcfunext.c'))
+shutil.copyfile('python2/extmod/_crcfunext.c', os.path.join(srcdir2,'_crcfunext.c'))
 
-shutil.copyfile('py3/extmod/_crcfunext.c', os.path.join(srcdir3,'_crcfunext.c'))
+shutil.copyfile('python3/extmod/_crcfunext.c', os.path.join(srcdir3,'_crcfunext.c'))
 
-copy('test_crcmod.py', testdir)
-copy('timing_test.py', testdir)
+copy2('test_crcmod.py', testdir2)
+copy2('timing_test.py', testdir2)
 
 copy3('test_crcmod.py', testdir3)
 
-basic = '''setup(
+
+setup = '''from distutils.core import setup
+from distutils.extension import Extension
+import sys,os
+
+if sys.version_info[0] == 2:
+    base_dir = 'python2'
+elif sys.version_info[0] == 3:
+    base_dir = 'python3'
+
+setup_dict = dict(
 name='crcmod',
 version='%s',
 description='CRC Generator',
@@ -86,37 +105,25 @@ author='Ray Buvel',
 author_email='rlbuvel@gmail.com',
 url='http://crcmod.sourceforge.net/',
 packages=['crcmod'],
-''' % version
+package_dir={
+    'crcmod' : os.path.join(base_dir,'crcmod'),
+},
 
-setup = '''from distutils.core import setup
-from distutils.extension import Extension
-
-%s
 ext_modules=[ 
-    Extension('crcmod._crcfunext', ['src/_crcfunext.c', ],
+    Extension('crcmod._crcfunext', [os.path.join(base_dir,'src/_crcfunext.c'), ],
     ),
 ],
 )
-''' % basic
 
-setup_py = '''from distutils.core import setup
+try:
+    setup(**setup_dict)
+except:
+    del setup_dict['ext_modules']
+    setup(**setup_dict)
+''' % version
 
-%s
-)
-''' % basic
 
 fd = open(os.path.join(crcdir,'setup.py'),'w')
 fd.write(setup)
 fd.close()
 
-fd = open(os.path.join(crcdir,'setup_py.py'),'w')
-fd.write(setup_py)
-fd.close()
-
-fd = open(os.path.join(crcdir3,'setup.py'),'w')
-fd.write(setup)
-fd.close()
-
-fd = open(os.path.join(crcdir3,'setup_py.py'),'w')
-fd.write(setup_py)
-fd.close()
