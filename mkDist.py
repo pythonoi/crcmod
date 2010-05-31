@@ -2,10 +2,12 @@ import os, shutil
 
 version = '1.7'
 
+#-----------------------------------------------------------------------------
 curdir = os.getcwd()
 
 crcdir = os.path.join(curdir,'dist/crcmod-%s' % version)
 
+#-----------------------------------------------------------------------------
 curdir2 = os.path.join(curdir,'python2')
 
 crcdir2 = os.path.join(crcdir,'python2')
@@ -13,6 +15,7 @@ moddir2 = os.path.join(crcdir2,'crcmod')
 srcdir2 = os.path.join(crcdir2,'src')
 testdir2 = os.path.join(crcdir2,'test')
 
+#-----------------------------------------------------------------------------
 curdir3 = os.path.join(curdir,'python3')
 
 crcdir3 = os.path.join(crcdir,'python3')
@@ -54,6 +57,7 @@ def copy3(fname, dir):
 #-----------------------------------------------------------------------------
 
 copy('README', crcdir)
+copy('LICENSE', crcdir)
 copy('changelog', crcdir)
 
 copy2('crcmod.py', moddir2)
@@ -64,6 +68,7 @@ copy3('crcmod.py', moddir3)
 copy3('_crcfunpy.py', moddir3)
 copy3('predefined.py', moddir3)
 
+#-----------------------------------------------------------------------------
 init_file = os.path.join(moddir2,'__init__.py')
 
 fd = open(init_file,'w')
@@ -78,50 +83,28 @@ fd.close()
 
 shutil.copyfile(init_file, os.path.join(moddir3,'__init__.py'))
 
-shutil.copyfile('python2/extmod/_crcfunext.c', os.path.join(srcdir2,'_crcfunext.c'))
+#-----------------------------------------------------------------------------
+shutil.copyfile('python2/extmod/_crcfunext.c',
+        os.path.join(srcdir2,'_crcfunext.c'))
 
-shutil.copyfile('python3/extmod/_crcfunext.c', os.path.join(srcdir3,'_crcfunext.c'))
+shutil.copyfile('python3/extmod/_crcfunext.c',
+        os.path.join(srcdir3,'_crcfunext.c'))
 
+#-----------------------------------------------------------------------------
 copy2('test_crcmod.py', testdir2)
 copy2('timing_test.py', testdir2)
 
 copy3('test_crcmod.py', testdir3)
 
+shutil.copytree('test', os.path.join(crcdir, 'test'))
 
-setup = '''from distutils.core import setup
-from distutils.extension import Extension
-import sys,os
+#-----------------------------------------------------------------------------
+# Edit the setup.py template and store it in the distribution.
+fd = open(os.path.join(curdir,'setup.py'))
+setup = fd.read()
+fd.close()
 
-if sys.version_info[0] == 2:
-    base_dir = 'python2'
-elif sys.version_info[0] == 3:
-    base_dir = 'python3'
-
-setup_dict = dict(
-name='crcmod',
-version='%s',
-description='CRC Generator',
-author='Ray Buvel',
-author_email='rlbuvel@gmail.com',
-url='http://crcmod.sourceforge.net/',
-packages=['crcmod'],
-package_dir={
-    'crcmod' : os.path.join(base_dir,'crcmod'),
-},
-
-ext_modules=[ 
-    Extension('crcmod._crcfunext', [os.path.join(base_dir,'src/_crcfunext.c'), ],
-    ),
-],
-)
-
-try:
-    setup(**setup_dict)
-except:
-    del setup_dict['ext_modules']
-    setup(**setup_dict)
-''' % version
-
+setup = setup.replace('<version_number>', version)
 
 fd = open(os.path.join(crcdir,'setup.py'),'w')
 fd.write(setup)
