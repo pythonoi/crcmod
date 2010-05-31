@@ -1,4 +1,3 @@
-
 import imp
 import os
 import sys
@@ -7,6 +6,8 @@ if sys.version_info[0] == 2:
     version_dir = 'python2'
 elif sys.version_info[0] == 3:
     version_dir = 'python3'
+
+print(version_dir)
 
 test_file_name = os.path.join(
     os.path.dirname(__file__),
