@@ -1,3 +1,9 @@
+1.7 Enhancement Release - May 31, 2010
+
+* Improve the installation process.
+* For Python3 don't allow unicode and require an object that supports the
+  buffer interface.
+
 1.6.1 Enhancement Release - Mar 7, 2010
 
 Enhancements made by Craig McQueen
