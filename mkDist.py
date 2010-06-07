@@ -93,7 +93,6 @@ shutil.copyfile('python3/extmod/_crcfunext.c',
 
 #-----------------------------------------------------------------------------
 copy2('test_crcmod.py', testdir2)
-copy2('timing_test.py', testdir2)
 
 copy3('test_crcmod.py', testdir3)
 
