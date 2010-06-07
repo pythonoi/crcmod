@@ -59,6 +59,7 @@ def copy3(fname, dir):
 copy('README', crcdir)
 copy('LICENSE', crcdir)
 copy('changelog', crcdir)
+copy('MANIFEST.in', crcdir)
 
 copy2('crcmod.py', moddir2)
 copy2('_crcfunpy.py', moddir2)
