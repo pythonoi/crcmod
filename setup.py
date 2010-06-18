@@ -14,6 +14,7 @@ description='CRC Generator',
 author='Ray Buvel',
 author_email='rlbuvel@gmail.com',
 url='http://crcmod.sourceforge.net/',
+download_url='http://sourceforge.net/projects/crcmod',
 packages=['crcmod'],
 package_dir={
     'crcmod' : os.path.join(base_dir,'crcmod'),
