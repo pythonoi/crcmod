@@ -22,9 +22,9 @@ Guidelines
 Documentation is available from the doc strings.  It is up to you to decide
 what polynomials to use in your application.  If someone has not specified the
 polynomials to use, you will need to do some research to find one suitable for
-your application.  Examples are available in the unit test script
-``test_crcmod.py``.  You may also use the ``predefined`` module to select one
-of the standard polynomials.
+your application.  Examples are available in the unit test script ``test.py``.
+You may also use the ``predefined`` module to select one of the standard
+polynomials.
 
 If you need to generate code for another language, I suggest you subclass the
 ``Crc`` class and replace the method ``generateCode``.  Use ``generateCode`` as
@@ -73,6 +73,11 @@ If the extension module builds, it will be installed.  Otherwise, the
 installation will include the pure Python version.  This will run significantly
 slower than the extension module but will allow the package to be used.
 
+For Windows users who want to use the mingw32 compiler, the command appears to
+be (I have not tested this)::
+
+    python setup.py build --compiler=mingw32 install
+
 For Python 3.x, the install process is the same but you need to use the 3.x
 interpreter.
 
@@ -80,11 +85,21 @@ interpreter.
 Unit Testing
 ------------
 
-The script ``test_crcmod.py`` is the unit test for ``crcmod``.  When you first
-install the package, you should run this test to make sure everything is
-installed properly.  This script performs a number of tests including a
-comparison to the direct method which uses a class implementing polynomials
-over the integers mod 2.
+The ``crcmod`` module has a sub-module ``crcmod.test``, which contains unit
+tests for both ``crcmod`` and ``crcmod.predefined``.
+
+When you first install ``crcmod``, you should run the unit tests to make sure
+everything is installed properly.  The unit tests perform a number of tests
+including a comparison to the direct method which uses a class implementing
+polynomials over the integers mod 2.
+
+To run the unit tests on Python >=2.5::
+
+    python -m crcmod.test
+
+Alternatively, in the ``test`` directory run::
+
+    python test_crcmod.py
 
 ---------------
 Code Generation
