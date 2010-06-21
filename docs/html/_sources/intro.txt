@@ -44,7 +44,7 @@ Dependencies
 Python Version
 ^^^^^^^^^^^^^^
 
-The module has separate code to support the 2.x and 3.x Python series.
+The package has separate code to support the 2.x and 3.x Python series.
 
 For the 2.x versions of Python, these versions have been tested:
 
@@ -92,11 +92,11 @@ interpreter.
 Unit Testing
 ------------
 
-The :mod:`crcmod` module has a sub-module :mod:`crcmod.test`, which contains
+The :mod:`crcmod` package has a module :mod:`crcmod.test`, which contains
 unit tests for both :mod:`crcmod` and :mod:`crcmod.predefined`.
 
 When you first install :mod:`crcmod`, you should run the unit tests to make
-sure everything is installed properly.  The unit tests perform a number of
+sure everything is installed properly.  The test script performs a number of
 tests including a comparison to the direct method which uses a class
 implementing polynomials over the integers mod 2.
 

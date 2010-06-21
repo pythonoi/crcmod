@@ -23,8 +23,7 @@ srcdir3 = os.path.join(crcdir3,'src')
 
 #-----------------------------------------------------------------------------
 # Clean out any previous distribution and create the base directories.
-if os.path.isdir(crcdir):
-    shutil.rmtree(crcdir)
+shutil.rmtree(crcdir, True)
 
 os.makedirs(crcdir2)
 os.makedirs(moddir2)
@@ -92,8 +91,12 @@ shutil.copyfile('python3/extmod/_crcfunext.c',
         os.path.join(srcdir3,'_crcfunext.c'))
 
 #-----------------------------------------------------------------------------
-
 shutil.copytree('test', os.path.join(crcdir, 'test'))
+
+#-----------------------------------------------------------------------------
+shutil.rmtree(os.path.join(curdir,'docs/source/_build'), True)
+
+shutil.copytree('docs', os.path.join(crcdir, 'docs'))
 
 #-----------------------------------------------------------------------------
 # Edit the setup.py template and store it in the distribution.
