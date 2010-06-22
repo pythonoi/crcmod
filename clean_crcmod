@@ -1,0 +1,14 @@
+rm -fr /usr/local/lib/python2.4/site-packages/crcmod 
+rm -f /usr/local/lib/python2.4/site-packages/crcmod-1.7.egg-info
+
+rm -fr /usr/local/lib/python2.5/site-packages/crcmod 
+rm -f /usr/local/lib/python2.5/site-packages/crcmod-1.7.egg-info
+
+rm -fr /usr/local/lib/python2.6/site-packages/crcmod 
+rm -f /usr/local/lib/python2.6/site-packages/crcmod-1.7-py2.6.egg-info
+
+rm -fr /usr/local/lib/python2.7/site-packages/crcmod 
+rm -f /usr/local/lib/python2.7/site-packages/crcmod-1.7-py2.7.egg-info
+
+rm -fr /usr/local/lib/python3.1/site-packages/crcmod 
+rm -f /usr/local/lib/python3.1/site-packages/crcmod-1.7-py3.1.egg-info
