@@ -26,6 +26,7 @@
 import unittest
 
 from array import array
+import struct
 import binascii
 
 from .crcmod import mkCrcFun, Crc
@@ -491,9 +492,10 @@ class InputTypesTest(unittest.TestCase):
     ]
     
     array_check_types = [
-        [ 'B', 1 ],
-        [ 'H', 2 ],
-        [ 'L', 4 ],
+        [ 'B', struct.calcsize('B') ],
+        [ 'H', struct.calcsize('H') ],
+        [ 'I', struct.calcsize('I') ],
+        [ 'L', struct.calcsize('L') ],
     ]
 
     def test_bytearray_input(self):
