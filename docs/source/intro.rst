@@ -80,8 +80,7 @@ If the extension module builds, it will be installed.  Otherwise, the
 installation will include the pure Python version.  This will run significantly
 slower than the extension module but will allow the package to be used.
 
-For Windows users who want to use the mingw32 compiler, the command appears to
-be (I have not tested this)::
+For Windows users who want to use the mingw32 compiler, run this command::
 
     python setup.py build --compiler=mingw32 install
 
