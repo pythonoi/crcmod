@@ -1,4 +1,4 @@
-1.7 Enhancement Release - TBD
+1.7 Enhancement Release - Jun 27, 2010
 
 * Improve the installation process.
 * For Python3 don't allow unicode and require an object that supports the

@@ -84,7 +84,7 @@ interpreter.
 Unit Testing
 ------------
 
-The ``crcmod`` module has a sub-module ``crcmod.test``, which contains unit
+The ``crcmod`` package has a module ``crcmod.test``, which contains unit
 tests for both ``crcmod`` and ``crcmod.predefined``.
 
 When you first install ``crcmod``, you should run the unit tests to make sure
@@ -114,7 +114,7 @@ sure it compiles with the GCC compiler.
 License
 -------
 
-The ``crcmod`` module is released under the MIT license. See the ``LICENSE``
+The ``crcmod`` package is released under the MIT license. See the ``LICENSE``
 file for details.
 
 ------------
